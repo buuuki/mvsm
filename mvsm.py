@@ -15,6 +15,8 @@ try:
     from PySide6.QtWidgets import (
         QApplication,
         QComboBox,
+        QDialog,
+        QDialogButtonBox,
         QFileDialog,
         QFrame,
         QGridLayout,
@@ -26,6 +28,7 @@ try:
         QPushButton,
         QPlainTextEdit,
         QSplitter,
+        QTextBrowser,
         QVBoxLayout,
         QWidget,
     )
@@ -125,16 +128,32 @@ TRANSLATIONS = {
         "process_done": "\nProceso finalizado con codigo {code}.\n",
         "process_error": "\nError al ejecutar el proceso: {error}.\n",
         "help_title": "Ayuda de mvsm",
-        "help_text": (
-            "1. Arrastra un fichero al primer campo o usa Buscar.\n"
-            "2. Si quieres comparar, añade un segundo fichero opcional.\n"
-            "3. Pulsa Analizar para ver la ficha tecnica o la comparacion.\n\n"
-            "La zona inferior de Debug muestra la salida completa del script."
+        "help_html": (
+            "<h3>Uso rapido</h3>"
+            "<ol>"
+            "<li>Arrastra un fichero al primer campo o usa <b>Buscar</b>.</li>"
+            "<li>El segundo fichero es opcional y solo sirve para comparar.</li>"
+            "<li>Pulsa <b>Analizar</b> para ver la ficha tecnica o la comparacion.</li>"
+            "</ol>"
+            "<h3>Que muestra</h3>"
+            "<ul>"
+            "<li><b>Resumen</b>: resultado legible y motivos principales.</li>"
+            "<li><b>Tarjeta de archivo</b>: duracion, tamano, resolucion, bitrate y codecs.</li>"
+            "<li><b>Debug</b>: salida completa del script por si quieres revisar detalles.</li>"
+            "</ul>"
+            "<p>Los cambios de idioma afectan a las etiquetas de la interfaz. El analisis siempre se ejecuta localmente con <code>mvsm.sh</code>.</p>"
         ),
         "about_title": "Acerca de mvsm",
-        "about_text": (
-            "mvsm inspecciona ficheros de video y puede comparar dos archivos de forma tecnica.\n\n"
-            "La interfaz es ligera, y el analisis real lo hace el script mvsm.sh."
+        "about_html": (
+            "<h3>mvsm</h3>"
+            "<p>Herramienta local para inspeccionar videos y comparar su calidad tecnica de forma rapida.</p>"
+            "<ul>"
+            "<li>Analisis de un fichero o comparacion de dos.</li>"
+            "<li>Interfaz Qt6 con arrastre de archivos y selector de idioma.</li>"
+            "<li>Resultado resumido y salida detallada del script.</li>"
+            "</ul>"
+            "<p><b>Licencia:</b> GPL-3.0-or-later.</p>"
+            "<p>El proyecto no necesita enviar archivos a ningun servicio externo.</p>"
         ),
     },
     "en": {
@@ -183,16 +202,32 @@ TRANSLATIONS = {
         "process_done": "\nProcess finished with code {code}.\n",
         "process_error": "\nError while executing the process: {error}.\n",
         "help_title": "mvsm help",
-        "help_text": (
-            "1. Drag a file into the first field or use Browse.\n"
-            "2. If you want to compare, add a second optional file.\n"
-            "3. Press Analyze to show the file sheet or the comparison.\n\n"
-            "The Debug area shows the full script output."
+        "help_html": (
+            "<h3>Quick use</h3>"
+            "<ol>"
+            "<li>Drag a file into the first field or use <b>Browse</b>.</li>"
+            "<li>The second file is optional and only used for comparison.</li>"
+            "<li>Press <b>Analyze</b> to show the file sheet or the comparison.</li>"
+            "</ol>"
+            "<h3>What you get</h3>"
+            "<ul>"
+            "<li><b>Summary</b>: readable result and main reasons.</li>"
+            "<li><b>File card</b>: duration, size, resolution, bitrate and codecs.</li>"
+            "<li><b>Debug</b>: full script output if you need the raw details.</li>"
+            "</ul>"
+            "<p>Language changes affect interface labels. Analysis always runs locally through <code>mvsm.sh</code>.</p>"
         ),
         "about_title": "About mvsm",
-        "about_text": (
-            "mvsm inspects video files and can compare two files technically.\n\n"
-            "The interface is lightweight, and the real analysis is done by mvsm.sh."
+        "about_html": (
+            "<h3>mvsm</h3>"
+            "<p>Local tool for inspecting videos and comparing their technical quality quickly.</p>"
+            "<ul>"
+            "<li>Analyze one file or compare two.</li>"
+            "<li>Qt6 interface with drag and drop and language selection.</li>"
+            "<li>Concise result summary and detailed script output.</li>"
+            "</ul>"
+            "<p><b>License:</b> GPL-3.0-or-later.</p>"
+            "<p>The project does not send files to any external service.</p>"
         ),
     },
 }
@@ -538,10 +573,37 @@ class VideoCompareWindow(QMainWindow):
         self.update_compare_visibility()
 
     def show_help(self) -> None:
-        QMessageBox.information(self, self.t("help_title"), self.t("help_text"))
+        self.show_rich_dialog(self.t("help_title"), self.t("help_html"))
 
     def show_about(self) -> None:
-        QMessageBox.information(self, self.t("about_title"), self.t("about_text"))
+        self.show_rich_dialog(self.t("about_title"), self.t("about_html"))
+
+    def show_rich_dialog(self, title: str, html: str) -> None:
+        dialog = QDialog(self)
+        dialog.setWindowTitle(title)
+        dialog.setModal(True)
+        dialog.resize(620, 460)
+        dialog.setStyleSheet("QDialog { background: #f8f9fb; }")
+
+        layout = QVBoxLayout(dialog)
+        layout.setContentsMargins(14, 14, 14, 14)
+        layout.setSpacing(10)
+
+        browser = QTextBrowser()
+        browser.setOpenExternalLinks(True)
+        browser.setReadOnly(True)
+        browser.setHtml(html)
+        browser.setStyleSheet(
+            "QTextBrowser { background: #ffffff; color: #111; border: 1px solid #cfd6df; border-radius: 6px; padding: 10px; }"
+            "QTextBrowser h3 { margin-top: 0; }"
+        )
+
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
+        buttons.accepted.connect(dialog.accept)
+
+        layout.addWidget(browser, stretch=1)
+        layout.addWidget(buttons)
+        dialog.exec()
 
     def detail_field_key(self, field: str) -> str:
         mapping = {
