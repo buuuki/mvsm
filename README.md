@@ -1,6 +1,6 @@
 # mvsm
 
-Script de `bash` para inspeccionar archivos de vídeo (`avi`, `mkv`, `mp4`, `mov`, etc.) y comparar dos ficheros para estimar cuál tiene mejor calidad técnica.
+Script de `bash` para inspeccionar archivos de vídeo (`avi`, `mkv`, `mp4`, `mov`, etc.) y ver las características técnicas de un fichero, o comparar dos si quieres estimar cuál tiene mejor calidad técnica.
 
 ## Qué hace
 
@@ -58,7 +58,7 @@ Inspeccionar un vídeo:
 ./mvsm.sh pelicula.mkv
 ```
 
-Comparar dos vídeos:
+Comparar dos vídeos, opcionalmente:
 
 ```bash
 ./mvsm.sh version1.mkv version2.mp4
@@ -71,7 +71,7 @@ Abrir la interfaz gráfica Qt6:
 python mvsm.py
 ```
 
-La ventana permite seleccionar los dos ficheros con el botón `Buscar...` o arrastrarlos sobre la aplicación. La ayuda y los formatos soportados aparecen encima de las rutas, y los botones `Comparar` y `Limpiar` quedan justo debajo. La información de Video 1 aparece a la izquierda y la de Video 2 a la derecha; en la vista comparativa se muestra solo el nombre del fichero, no la ruta completa. Duración, tamaño, bitrate, resolución y puntuación se muestran una sola vez en una zona compacta de métricas principales. El ganador muestra una pequeña animación de trofeo/medalla, y el resultado aparece debajo de ambos vídeos con una lectura rápida que indica si la ventaja es ligera, notable, clara, si dobla o si triplica en métricas importantes. La salida completa del script queda en un panel de debug inferior redimensionable.
+La ventana permite seleccionar un fichero con el botón `Buscar...` o arrastrarlo sobre la aplicación para ver sus características, o añadir un segundo fichero opcional para compararlos. La ayuda y los formatos soportados aparecen encima de las rutas, y los botones `Analizar` y `Limpiar` quedan justo debajo. La información del primer archivo aparece a la izquierda y la del segundo a la derecha; en la vista comparativa se muestra solo el nombre del fichero, no la ruta completa. Duración, tamaño, bitrate, resolución y puntuación se muestran una sola vez en una zona compacta de métricas principales. El ganador muestra una pequeña animación de trofeo/medalla, y el resultado aparece debajo de ambos vídeos con una lectura rápida que indica si la ventaja es ligera, notable, clara, si dobla o si triplica en métricas importantes. La salida completa del script queda en un panel de debug inferior redimensionable.
 
 ## Instalar lanzador de escritorio
 
