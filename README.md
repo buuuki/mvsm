@@ -226,6 +226,10 @@ git remote add origin <URL_DEL_REPO>
 git push -u origin main
 ```
 
+## Licencia
+
+Este proyecto se publica bajo `GPL-3.0-or-later`.
+
 ## Mejoras futuras
 
 - salida JSON
