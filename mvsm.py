@@ -71,6 +71,41 @@ QPushButton:disabled {
 }
 """
 
+APP_TEXT_STYLE = """
+QLabel {
+    color: #1f2937;
+}
+QLineEdit,
+QPlainTextEdit {
+    background: #ffffff;
+    color: #111111;
+    border: 1px solid #bfc7d1;
+    border-radius: 4px;
+    selection-background-color: #c9dced;
+    selection-color: #111111;
+}
+QLineEdit {
+    padding: 4px 8px;
+}
+QPlainTextEdit {
+    padding: 6px 8px;
+}
+QLineEdit:focus,
+QPlainTextEdit:focus {
+    border: 1px solid #8aa3bd;
+}
+QLineEdit:disabled,
+QPlainTextEdit:disabled {
+    background: #f1f3f5;
+    color: #6b7280;
+}
+QToolTip {
+    background: #ffffff;
+    color: #111111;
+    border: 1px solid #bfc7d1;
+}
+"""
+
 
 DETAIL_FIELDS = (
     "Fichero",
@@ -297,6 +332,8 @@ class VideoCompareWindow(QMainWindow):
 
         self.video1_edit = DropLineEdit("Ruta del video", self.handle_dropped_files)
         self.video2_edit = DropLineEdit("Ruta opcional para comparar", self.handle_dropped_files)
+        self.video1_edit.setStyleSheet(APP_TEXT_STYLE)
+        self.video2_edit.setStyleSheet(APP_TEXT_STYLE)
         self.video1_edit.textChanged.connect(self.on_input_changed)
         self.video2_edit.textChanged.connect(self.on_input_changed)
         self.path_row_labels = {}
@@ -337,6 +374,7 @@ class VideoCompareWindow(QMainWindow):
         self.output.setReadOnly(True)
         self.output.setMinimumHeight(180)
         self.output.setPlaceholderText("")
+        self.output.setStyleSheet(APP_TEXT_STYLE)
 
         utility_row = QHBoxLayout()
         utility_row.setSpacing(8)
@@ -662,6 +700,7 @@ class VideoCompareWindow(QMainWindow):
         layout = QHBoxLayout()
         label = QLabel(label_text)
         label.setFixedWidth(90)
+        label.setStyleSheet("color: #1f2937; background: transparent;")
         self.path_row_labels[label_text] = label
         browse = QPushButton("Buscar...")
         browse.setStyleSheet(BUTTON_STYLE)
@@ -1119,6 +1158,7 @@ class VideoCompareWindow(QMainWindow):
 
 def main() -> int:
     app = QApplication(sys.argv)
+    app.setStyleSheet(APP_TEXT_STYLE + "\n" + BUTTON_STYLE)
     app.setApplicationName("mvsm")
     app.setApplicationDisplayName("mvsm")
     app.setDesktopFileName(DESKTOP_FILE_ID)
