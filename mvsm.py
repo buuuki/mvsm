@@ -757,6 +757,7 @@ class VideoCompareWindow(QMainWindow):
 
     def path_row(self, label_text: str, edit: QLineEdit) -> QHBoxLayout:
         layout = QHBoxLayout()
+        layout.setSpacing(8)
         label = QLabel(label_text)
         label.setFixedWidth(90)
         label.setStyleSheet("background: transparent;")
