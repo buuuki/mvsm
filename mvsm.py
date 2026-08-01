@@ -10,7 +10,7 @@ VENV_PYTHON = APP_DIR / ".venv" / "bin" / "python"
 
 
 try:
-    from PySide6.QtCore import QProcess, Qt, QTimer
+    from PySide6.QtCore import QProcess, QSettings, Qt, QTimer
     from PySide6.QtGui import QIcon, QTextCursor
     from PySide6.QtWidgets import (
         QApplication,
@@ -47,63 +47,87 @@ except ImportError as exc:
 APP_ICON_PATH = APP_DIR / "assets" / "icons" / "mvsm-512.png"
 DESKTOP_FILE_ID = "mvsm"
 
-BUTTON_STYLE = """
-QPushButton {
-    background: #f4f6f8;
-    color: #111111;
-    border: 1px solid #c9d1db;
-    border-radius: 6px;
-    padding: 6px 12px;
-    min-height: 18px;
-}
-QPushButton:hover {
-    background: #e8edf3;
-    border-color: #aeb7c4;
-}
-QPushButton:pressed {
-    background: #dfe6ee;
-    border-color: #98a3b2;
-}
-QPushButton:disabled {
-    background: #f7f8fa;
-    color: #8a94a3;
-    border-color: #dde3ea;
-}
-"""
+THEME_MODES = ("system", "light", "dark")
 
-APP_TEXT_STYLE = """
-QLabel {
-    color: #1f2937;
-}
-QLineEdit,
-QPlainTextEdit {
-    background: #ffffff;
-    color: #111111;
-    border: 1px solid #bfc7d1;
-    border-radius: 4px;
-    selection-background-color: #c9dced;
-    selection-color: #111111;
-}
-QLineEdit {
-    padding: 4px 8px;
-}
-QPlainTextEdit {
-    padding: 6px 8px;
-}
-QLineEdit:focus,
-QPlainTextEdit:focus {
-    border: 1px solid #8aa3bd;
-}
-QLineEdit:disabled,
-QPlainTextEdit:disabled {
-    background: #f1f3f5;
-    color: #6b7280;
-}
-QToolTip {
-    background: #ffffff;
-    color: #111111;
-    border: 1px solid #bfc7d1;
-}
+
+def theme_styles(theme: str) -> str:
+    if theme == "dark":
+        colors = {
+            "window": "#171a1f",
+            "surface": "#20252c",
+            "surface_alt": "#282e36",
+            "input": "#15191e",
+            "text": "#f3f4f6",
+            "muted": "#b8c0cc",
+            "border": "#46515f",
+            "border_focus": "#8aa3bd",
+            "button": "#2d3540",
+            "button_hover": "#394452",
+            "button_pressed": "#222a33",
+            "disabled": "#737d8a",
+            "selection": "#38536e",
+            "accent": "#e0aa4f",
+        }
+    else:
+        colors = {
+            "window": "#eef1f4",
+            "surface": "#f8f9fb",
+            "surface_alt": "#ffffff",
+            "input": "#ffffff",
+            "text": "#111111",
+            "muted": "#4a5568",
+            "border": "#c9d1db",
+            "border_focus": "#8aa3bd",
+            "button": "#f4f6f8",
+            "button_hover": "#e8edf3",
+            "button_pressed": "#dfe6ee",
+            "disabled": "#8a94a3",
+            "selection": "#c9dced",
+            "accent": "#b77900",
+        }
+
+    return f"""
+QWidget {{ color: {colors['text']}; }}
+QWidget#centralWidget {{ background: {colors['window']}; }}
+QWidget#bodyWidget {{ background: {colors['surface']}; }}
+QLabel {{ color: {colors['text']}; }}
+QLabel#hintLabel, QLabel#mutedText, QLabel#fieldName, QLabel#resultTitle {{ color: {colors['muted']}; }}
+QLabel#winnerBadge {{ color: {colors['accent']}; }}
+QLineEdit, QPlainTextEdit {{
+    background: {colors['input']}; color: {colors['text']};
+    border: 1px solid {colors['border']}; border-radius: 4px;
+    selection-background-color: {colors['selection']}; selection-color: {colors['text']};
+}}
+QLineEdit {{ padding: 4px 8px; }}
+QPlainTextEdit {{ padding: 6px 8px; }}
+QLineEdit:focus, QPlainTextEdit:focus, QComboBox:focus {{ border: 1px solid {colors['border_focus']}; }}
+QLineEdit:disabled, QPlainTextEdit:disabled, QComboBox:disabled, QPushButton:disabled {{
+    background: {colors['surface_alt']}; color: {colors['disabled']};
+}}
+QPushButton {{
+    background: {colors['button']}; color: {colors['text']};
+    border: 1px solid {colors['border']}; border-radius: 6px;
+    padding: 6px 12px; min-height: 18px;
+}}
+QPushButton:hover {{ background: {colors['button_hover']}; border-color: {colors['border_focus']}; }}
+QPushButton:pressed {{ background: {colors['button_pressed']}; border-color: {colors['border_focus']}; }}
+QComboBox {{
+    background: {colors['input']}; color: {colors['text']};
+    border: 1px solid {colors['border']}; border-radius: 4px; padding: 2px 8px;
+}}
+QComboBox QAbstractItemView {{
+    background: {colors['input']}; color: {colors['text']};
+    selection-background-color: {colors['selection']}; selection-color: {colors['text']};
+}}
+QFrame#resultPanel, QFrame#filePanel {{
+    background: {colors['surface_alt']}; border: 1px solid {colors['border']}; border-radius: 6px;
+}}
+QDialog#richDialog {{ background: {colors['surface']}; }}
+QTextBrowser#richBrowser {{
+    background: {colors['input']}; color: {colors['text']};
+    border: 1px solid {colors['border']}; border-radius: 6px; padding: 10px;
+}}
+QToolTip {{ background: {colors['input']}; color: {colors['text']}; border: 1px solid {colors['border']}; }}
 """
 
 
@@ -146,6 +170,10 @@ TRANSLATIONS = {
         "help": "Ayuda",
         "about": "Acerca de",
         "language": "Idioma",
+        "theme": "Tema",
+        "theme_system": "Sistema",
+        "theme_light": "Claro",
+        "theme_dark": "Oscuro",
         "browse": "Buscar...",
         "file": "Archivo",
         "file2": "Archivo 2",
@@ -220,6 +248,10 @@ TRANSLATIONS = {
         "help": "Help",
         "about": "About",
         "language": "Language",
+        "theme": "Theme",
+        "theme_system": "System",
+        "theme_light": "Light",
+        "theme_dark": "Dark",
         "browse": "Browse...",
         "file": "File",
         "file2": "File 2",
@@ -323,6 +355,12 @@ class VideoCompareWindow(QMainWindow):
         self.process = None
         self.compare_output = ""
         self.analysis_mode = "idle"
+        self.settings = QSettings("mvsm", "mvsm")
+        self.theme_mode = self.settings.value("theme", "system")
+        if self.theme_mode not in THEME_MODES:
+            self.theme_mode = "system"
+        self.style_hints = QApplication.instance().styleHints()
+        self.style_hints.colorSchemeChanged.connect(self.on_system_color_scheme_changed)
 
         self.setWindowTitle("mvsm")
         if APP_ICON_PATH.exists():
@@ -332,8 +370,6 @@ class VideoCompareWindow(QMainWindow):
 
         self.video1_edit = DropLineEdit("Ruta del video", self.handle_dropped_files)
         self.video2_edit = DropLineEdit("Ruta opcional para comparar", self.handle_dropped_files)
-        self.video1_edit.setStyleSheet(APP_TEXT_STYLE)
-        self.video2_edit.setStyleSheet(APP_TEXT_STYLE)
         self.video1_edit.textChanged.connect(self.on_input_changed)
         self.video2_edit.textChanged.connect(self.on_input_changed)
         self.path_row_labels = {}
@@ -349,23 +385,22 @@ class VideoCompareWindow(QMainWindow):
         self.result_label = QLabel()
         self.result_label.setWordWrap(True)
         self.result_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-        self.result_label.setStyleSheet("font-size: 18px; font-weight: 700; color: #111;")
+        self.result_label.setStyleSheet("font-size: 18px; font-weight: 700;")
 
         self.reasons_label = QLabel()
         self.reasons_label.setWordWrap(True)
         self.reasons_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-        self.reasons_label.setStyleSheet("font-size: 13px; color: #4a5568;")
+        self.reasons_label.setObjectName("mutedText")
+        self.reasons_label.setStyleSheet("font-size: 13px;")
 
         result_box = QFrame()
         result_box.setObjectName("resultPanel")
-        result_box.setStyleSheet(
-            "#resultPanel { border: 1px solid #d6dde6; border-radius: 6px; background: #f8f9fb; }"
-        )
         result_layout = QVBoxLayout(result_box)
         result_layout.setContentsMargins(12, 10, 12, 10)
         result_layout.setSpacing(6)
         self.result_title = QLabel()
-        self.result_title.setStyleSheet("font-size: 12px; font-weight: 700; color: #6b7280; letter-spacing: 0;")
+        self.result_title.setObjectName("resultTitle")
+        self.result_title.setStyleSheet("font-size: 12px; font-weight: 700; letter-spacing: 0;")
         result_layout.addWidget(self.result_title)
         result_layout.addWidget(self.result_label)
         result_layout.addWidget(self.reasons_label)
@@ -374,7 +409,6 @@ class VideoCompareWindow(QMainWindow):
         self.output.setReadOnly(True)
         self.output.setMinimumHeight(180)
         self.output.setPlaceholderText("")
-        self.output.setStyleSheet(APP_TEXT_STYLE)
 
         utility_row = QHBoxLayout()
         utility_row.setSpacing(8)
@@ -385,46 +419,43 @@ class VideoCompareWindow(QMainWindow):
         self.language_combo.addItem("")
         self.language_combo.currentIndexChanged.connect(self.on_language_changed)
         self.language_combo.setFixedWidth(140)
-        self.language_combo.setStyleSheet(
-            "QComboBox { background: #fff; color: #111; border: 1px solid #bfc7d1; border-radius: 4px; padding: 2px 8px; }"
-            "QComboBox:focus { border: 1px solid #8aa3bd; }"
-            "QComboBox QAbstractItemView { background: #fff; color: #111; selection-background-color: #d7e4f2; selection-color: #111; }"
-        )
+        self.theme_label = QLabel()
+        self.theme_combo = QComboBox()
+        self.theme_combo.addItems(["", "", ""])
+        self.theme_combo.setFixedWidth(140)
+        self.theme_combo.currentIndexChanged.connect(self.on_theme_changed)
         utility_row.addWidget(self.language_label)
         utility_row.addWidget(self.language_combo)
+        utility_row.addWidget(self.theme_label)
+        utility_row.addWidget(self.theme_combo)
 
         utility_row.addStretch(1)
 
         self.help_button = QPushButton()
         self.help_button.clicked.connect(self.show_help)
-        self.help_button.setStyleSheet(BUTTON_STYLE)
         utility_row.addWidget(self.help_button)
 
         self.about_button = QPushButton()
         self.about_button.clicked.connect(self.show_about)
-        self.about_button.setStyleSheet(BUTTON_STYLE)
         utility_row.addWidget(self.about_button)
 
         self.compare_button = QPushButton()
         self.compare_button.clicked.connect(self.run_compare)
-        self.compare_button.setStyleSheet(BUTTON_STYLE)
 
         self.clear_button = QPushButton()
         self.clear_button.clicked.connect(self.clear_all)
-        self.clear_button.setStyleSheet(BUTTON_STYLE)
 
         self.close_button = QPushButton()
         self.close_button.clicked.connect(self.close)
-        self.close_button.setStyleSheet(BUTTON_STYLE)
 
         central = QWidget()
-        central.setStyleSheet("background: #eef1f4;")
+        central.setObjectName("centralWidget")
         main_layout = QVBoxLayout(central)
         main_layout.setContentsMargins(0, 0, 0, 10)
         main_layout.setSpacing(0)
 
         body_widget = QWidget()
-        body_widget.setStyleSheet("background: #f8f9fb;")
+        body_widget.setObjectName("bodyWidget")
         body_layout = QVBoxLayout(body_widget)
         body_layout.setContentsMargins(10, 10, 10, 0)
         body_layout.setSpacing(5)
@@ -432,8 +463,9 @@ class VideoCompareWindow(QMainWindow):
         body_layout.addLayout(utility_row)
 
         self.hint_label = QLabel()
+        self.hint_label.setObjectName("hintLabel")
         self.hint_label.setWordWrap(True)
-        self.hint_label.setStyleSheet("color: #5b6472; background: transparent; font-size: 12px;")
+        self.hint_label.setStyleSheet("font-size: 12px; background: transparent;")
         body_layout.addWidget(self.hint_label)
 
         path_layout = QGridLayout()
@@ -490,8 +522,8 @@ class VideoCompareWindow(QMainWindow):
 
     def create_file_panel(self, title: str) -> dict:
         box = QFrame()
+        box.setObjectName("filePanel")
         box.setFrameShape(QFrame.Shape.StyledPanel)
-        box.setStyleSheet("QFrame { border: 1px solid #cfd6df; border-radius: 6px; background: #fff; }")
         layout = QVBoxLayout(box)
         layout.setContentsMargins(10, 8, 10, 8)
         layout.setSpacing(5)
@@ -499,13 +531,14 @@ class VideoCompareWindow(QMainWindow):
         header_layout = QHBoxLayout()
         header_layout.setSpacing(4)
         header = QLabel(title.upper())
-        header.setStyleSheet("font-size: 18px; font-weight: 800; color: #111; border: 0; background: transparent;")
+        header.setStyleSheet("font-size: 18px; font-weight: 800; border: 0; background: transparent;")
         winner_badge = QLabel("")
         winner_badge.setFixedWidth(42)
         winner_badge.setFixedHeight(22)
         winner_badge.setVisible(False)
         winner_badge.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        winner_badge.setStyleSheet("font-size: 16px; font-weight: 800; color: #b77900; border: 0; background: transparent;")
+        winner_badge.setObjectName("winnerBadge")
+        winner_badge.setStyleSheet("font-size: 16px; font-weight: 800; border: 0; background: transparent;")
         header_layout.addWidget(header)
         header_layout.addWidget(winner_badge)
         header_layout.addStretch(1)
@@ -518,14 +551,15 @@ class VideoCompareWindow(QMainWindow):
         highlight_name_labels = {}
         for index, field in enumerate((*IMPORTANT_FIELDS, "Puntuación")):
             name = QLabel(field)
-            name.setStyleSheet("font-size: 11px; font-weight: 600; color: #555; border: 0; background: transparent;")
+            name.setObjectName("fieldName")
+            name.setStyleSheet("font-size: 11px; font-weight: 600; border: 0; background: transparent;")
             value = QLabel("-")
             value.setWordWrap(True)
             value.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
             if field == "Puntuación":
-                value.setStyleSheet("font-size: 32px; font-weight: 800; color: #111; border: 0; background: transparent;")
+                value.setStyleSheet("font-size: 32px; font-weight: 800; border: 0; background: transparent;")
             else:
-                value.setStyleSheet("font-size: 16px; font-weight: 700; color: #111; border: 0; background: transparent;")
+                value.setStyleSheet("font-size: 16px; font-weight: 700; border: 0; background: transparent;")
 
             row = index // 3
             column = (index % 3) * 2
@@ -546,7 +580,8 @@ class VideoCompareWindow(QMainWindow):
             row = index // 2
             column = (index % 2) * 2
             name = QLabel(f"{field}:")
-            name.setStyleSheet("font-weight: 600; color: #333; border: 0; background: transparent;")
+            name.setObjectName("fieldName")
+            name.setStyleSheet("font-weight: 600; border: 0; background: transparent;")
             value = QLabel("-")
             value.setWordWrap(True)
             value.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
@@ -578,12 +613,20 @@ class VideoCompareWindow(QMainWindow):
         self.help_button.setText(self.t("help"))
         self.about_button.setText(self.t("about"))
         self.language_label.setText(self.t("language"))
+        self.theme_label.setText(self.t("theme"))
 
         self.language_combo.blockSignals(True)
         self.language_combo.setItemText(0, TRANSLATIONS["es"]["language_name"])
         self.language_combo.setItemText(1, TRANSLATIONS["en"]["language_name"])
         self.language_combo.setCurrentIndex(0 if self.language == "es" else 1)
         self.language_combo.blockSignals(False)
+
+        self.theme_combo.blockSignals(True)
+        self.theme_combo.setItemText(0, self.t("theme_system"))
+        self.theme_combo.setItemText(1, self.t("theme_light"))
+        self.theme_combo.setItemText(2, self.t("theme_dark"))
+        self.theme_combo.setCurrentIndex(THEME_MODES.index(self.theme_mode))
+        self.theme_combo.blockSignals(False)
 
         self.compare_button.setText(self.t("analyze"))
         self.clear_button.setText(self.t("clear"))
@@ -618,6 +661,24 @@ class VideoCompareWindow(QMainWindow):
 
         if self.analysis_mode in ("idle", "single"):
             self.apply_state_texts()
+        self.apply_theme()
+
+    def effective_theme(self) -> str:
+        if self.theme_mode != "system":
+            return self.theme_mode
+        return "dark" if self.style_hints.colorScheme() == Qt.ColorScheme.Dark else "light"
+
+    def apply_theme(self) -> None:
+        QApplication.instance().setStyleSheet(theme_styles(self.effective_theme()))
+
+    def on_theme_changed(self, index: int) -> None:
+        self.theme_mode = THEME_MODES[index]
+        self.settings.setValue("theme", self.theme_mode)
+        self.apply_theme()
+
+    def on_system_color_scheme_changed(self, *_args) -> None:
+        if self.theme_mode == "system":
+            self.apply_theme()
 
     def apply_state_texts(self) -> None:
         if self.analysis_mode == "single":
@@ -647,23 +708,21 @@ class VideoCompareWindow(QMainWindow):
 
     def show_rich_dialog(self, title: str, html: str) -> None:
         dialog = QDialog(self)
+        dialog.setObjectName("richDialog")
         dialog.setWindowTitle(title)
         dialog.setModal(True)
         dialog.resize(620, 460)
-        dialog.setStyleSheet("QDialog { background: #f8f9fb; }")
 
         layout = QVBoxLayout(dialog)
         layout.setContentsMargins(14, 14, 14, 14)
         layout.setSpacing(10)
 
         browser = QTextBrowser()
+        browser.setObjectName("richBrowser")
         browser.setOpenExternalLinks(True)
         browser.setReadOnly(True)
         browser.setHtml(html)
-        browser.setStyleSheet(
-            "QTextBrowser { background: #ffffff; color: #111; border: 1px solid #cfd6df; border-radius: 6px; padding: 10px; }"
-            "QTextBrowser h3 { margin-top: 0; }"
-        )
+        browser.setStyleSheet("QTextBrowser h3 { margin-top: 0; }")
 
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
         buttons.accepted.connect(dialog.accept)
@@ -700,10 +759,9 @@ class VideoCompareWindow(QMainWindow):
         layout = QHBoxLayout()
         label = QLabel(label_text)
         label.setFixedWidth(90)
-        label.setStyleSheet("color: #1f2937; background: transparent;")
+        label.setStyleSheet("background: transparent;")
         self.path_row_labels[label_text] = label
         browse = QPushButton("Buscar...")
-        browse.setStyleSheet(BUTTON_STYLE)
         self.path_row_labels[f"{label_text}__browse"] = browse
         browse.clicked.connect(lambda: self.browse_file(edit))
         browse.setToolTip(self.t("browse_tooltip"))
@@ -914,10 +972,10 @@ class VideoCompareWindow(QMainWindow):
         badge = self.winner_widgets()["winner_badge"]
         if self.winner_pulse:
             badge.setText("🥇")
-            badge.setStyleSheet("font-size: 16px; font-weight: 800; color: #b77900; border: 0; background: transparent;")
+            badge.setStyleSheet("font-size: 16px; font-weight: 800; border: 0; background: transparent;")
         else:
             badge.setText("🏆")
-            badge.setStyleSheet("font-size: 16px; font-weight: 800; color: #b77900; border: 0; background: transparent;")
+            badge.setStyleSheet("font-size: 16px; font-weight: 800; border: 0; background: transparent;")
 
     def winner_widgets(self) -> dict:
         return self.file1_widgets if self.current_winner == 1 else self.file2_widgets
@@ -1158,7 +1216,6 @@ class VideoCompareWindow(QMainWindow):
 
 def main() -> int:
     app = QApplication(sys.argv)
-    app.setStyleSheet(APP_TEXT_STYLE + "\n" + BUTTON_STYLE)
     app.setApplicationName("mvsm")
     app.setApplicationDisplayName("mvsm")
     app.setDesktopFileName(DESKTOP_FILE_ID)
