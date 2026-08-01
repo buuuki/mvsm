@@ -47,6 +47,65 @@ except ImportError as exc:
 APP_ICON_PATH = APP_DIR / "assets" / "icons" / "mvsm-512.png"
 DESKTOP_FILE_ID = "mvsm"
 
+BUTTON_STYLE = """
+QPushButton {
+    background: #f4f6f8;
+    color: #111111;
+    border: 1px solid #c9d1db;
+    border-radius: 6px;
+    padding: 6px 12px;
+    min-height: 18px;
+}
+QPushButton:hover {
+    background: #e8edf3;
+    border-color: #aeb7c4;
+}
+QPushButton:pressed {
+    background: #dfe6ee;
+    border-color: #98a3b2;
+}
+QPushButton:disabled {
+    background: #f7f8fa;
+    color: #8a94a3;
+    border-color: #dde3ea;
+}
+"""
+
+APP_TEXT_STYLE = """
+QLabel {
+    color: #1f2937;
+}
+QLineEdit,
+QPlainTextEdit {
+    background: #ffffff;
+    color: #111111;
+    border: 1px solid #bfc7d1;
+    border-radius: 4px;
+    selection-background-color: #c9dced;
+    selection-color: #111111;
+}
+QLineEdit {
+    padding: 4px 8px;
+}
+QPlainTextEdit {
+    padding: 6px 8px;
+}
+QLineEdit:focus,
+QPlainTextEdit:focus {
+    border: 1px solid #8aa3bd;
+}
+QLineEdit:disabled,
+QPlainTextEdit:disabled {
+    background: #f1f3f5;
+    color: #6b7280;
+}
+QToolTip {
+    background: #ffffff;
+    color: #111111;
+    border: 1px solid #bfc7d1;
+}
+"""
+
 
 DETAIL_FIELDS = (
     "Fichero",
@@ -273,6 +332,8 @@ class VideoCompareWindow(QMainWindow):
 
         self.video1_edit = DropLineEdit("Ruta del video", self.handle_dropped_files)
         self.video2_edit = DropLineEdit("Ruta opcional para comparar", self.handle_dropped_files)
+        self.video1_edit.setStyleSheet(APP_TEXT_STYLE)
+        self.video2_edit.setStyleSheet(APP_TEXT_STYLE)
         self.video1_edit.textChanged.connect(self.on_input_changed)
         self.video2_edit.textChanged.connect(self.on_input_changed)
         self.path_row_labels = {}
@@ -313,19 +374,10 @@ class VideoCompareWindow(QMainWindow):
         self.output.setReadOnly(True)
         self.output.setMinimumHeight(180)
         self.output.setPlaceholderText("")
+        self.output.setStyleSheet(APP_TEXT_STYLE)
 
         utility_row = QHBoxLayout()
         utility_row.setSpacing(8)
-
-        self.help_button = QPushButton()
-        self.help_button.clicked.connect(self.show_help)
-        utility_row.addWidget(self.help_button)
-
-        self.about_button = QPushButton()
-        self.about_button.clicked.connect(self.show_about)
-        utility_row.addWidget(self.about_button)
-
-        utility_row.addStretch(1)
 
         self.language_label = QLabel()
         self.language_combo = QComboBox()
@@ -341,14 +393,29 @@ class VideoCompareWindow(QMainWindow):
         utility_row.addWidget(self.language_label)
         utility_row.addWidget(self.language_combo)
 
+        utility_row.addStretch(1)
+
+        self.help_button = QPushButton()
+        self.help_button.clicked.connect(self.show_help)
+        self.help_button.setStyleSheet(BUTTON_STYLE)
+        utility_row.addWidget(self.help_button)
+
+        self.about_button = QPushButton()
+        self.about_button.clicked.connect(self.show_about)
+        self.about_button.setStyleSheet(BUTTON_STYLE)
+        utility_row.addWidget(self.about_button)
+
         self.compare_button = QPushButton()
         self.compare_button.clicked.connect(self.run_compare)
+        self.compare_button.setStyleSheet(BUTTON_STYLE)
 
         self.clear_button = QPushButton()
         self.clear_button.clicked.connect(self.clear_all)
+        self.clear_button.setStyleSheet(BUTTON_STYLE)
 
         self.close_button = QPushButton()
         self.close_button.clicked.connect(self.close)
+        self.close_button.setStyleSheet(BUTTON_STYLE)
 
         central = QWidget()
         central.setStyleSheet("background: #eef1f4;")
@@ -633,8 +700,10 @@ class VideoCompareWindow(QMainWindow):
         layout = QHBoxLayout()
         label = QLabel(label_text)
         label.setFixedWidth(90)
+        label.setStyleSheet("color: #1f2937; background: transparent;")
         self.path_row_labels[label_text] = label
         browse = QPushButton("Buscar...")
+        browse.setStyleSheet(BUTTON_STYLE)
         self.path_row_labels[f"{label_text}__browse"] = browse
         browse.clicked.connect(lambda: self.browse_file(edit))
         browse.setToolTip(self.t("browse_tooltip"))
@@ -1089,6 +1158,7 @@ class VideoCompareWindow(QMainWindow):
 
 def main() -> int:
     app = QApplication(sys.argv)
+    app.setStyleSheet(APP_TEXT_STYLE + "\n" + BUTTON_STYLE)
     app.setApplicationName("mvsm")
     app.setApplicationDisplayName("mvsm")
     app.setDesktopFileName(DESKTOP_FILE_ID)
